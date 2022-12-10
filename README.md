@@ -41,3 +41,6 @@ PaaS services on the cloud such as - (azure app service) .
 - Ensure you have made your own dockerhub account
 - Ensure you already have docker installed on your own build agent
 - [Follow these steps to create service connection](https://www.programmingwithwolfgang.com/build-docker-azure-devops-ci-pipeline/)
+
+#### Docker Compose
+- Compose is used to run multiple containers locally [documentation here + installation](https://docs.docker.com/compose/)
