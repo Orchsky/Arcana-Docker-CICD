@@ -1,0 +1,7 @@
+version: "3"
+services: 
+  arcana:
+    build:
+      context: .
+    ports: 
+      - "80:80" 
