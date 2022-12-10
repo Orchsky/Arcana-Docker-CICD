@@ -1,47 +1,111 @@
 trigger:
   - main
 
-pool: demo
+pool: $(AgentPool)
+
+variables:
+  - name: DockerCredentials
+    value: "docker credentials" 
+  - name: ContainerRepo
+    value: "starseed7777/arcana"
+  - name: Dockerfile
+    value: "Dockerfile"
+  - name: DockerComposeFile
+    value: "docker-compose.yml"
+  - name: SmokeTestFile
+    value: "$(System.DefaultWorkingDirectory)/smoketest.ps1"
+  - name: AgentPool
+    value: "demo"
 
 stages:
 - stage: validationdev
   jobs:
-  - job: docker_validation_dev
+  - job: validation_dev
     steps:
     - task: Docker@2
-      displayName: Docker Build 
+      displayName: Docker Build DEV
       inputs:
-        containerRegistry: 'docker credentials'
-        repository: 'starseed7777/arcana'
+        containerRegistry: $(DockerCredentials)
+        repository: $(ContainerRepo)
         command: 'build'
-        Dockerfile: 'Dockerfile'
-        tags: '$(Build.BuildNumber)-DEV'
-        
-    - task: Docker@2
-      displayName: Docker Push
+        Dockerfile: $(Dockerfile)
+        tags: '$(Build.BuildNumber)-DEV'    
+    - task: DockerCompose@0
+      displayName: Docker Compose
       inputs:
-        containerRegistry: 'docker credentials'
-        repository: 'starseed7777/arcana'
+        containerregistrytype: 'Container Registry'
+        dockerRegistryEndpoint: $(DockerCredentials)
+        dockerComposeFile: $(DockerComposeFile)
+        dockerComposeCommand: 'up'
+        arguments: '-d'    
+    - task: PowerShell@2
+      displayName: Smoke Test
+      inputs:
+        filePath: $(SmokeTestFile)
+    - task: Docker@2
+      displayName: Docker Push DEV
+      inputs:
+        containerRegistry: $(DockerCredentials)
+        repository: $(ContainerRepo)
         command: 'push'
         tags: '$(Build.BuildNumber)-DEV'
-- stage: validationqa
+- stage: buildpushqa
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
   jobs:
-  - job: docker_validation_qa
+  - job: build_push_qa
     steps:
     - task: Docker@2
-      displayName: Docker Build 
+      displayName: Docker Build QA
       inputs:
-        containerRegistry: 'docker credentials'
-        repository: 'starseed7777/arcana'
+        containerRegistry: $(DockerCredentials)
+        repository: $(ContainerRepo)
         command: 'build'
         Dockerfile: 'Dockerfile'
-        tags: '$(Build.BuildNumber)-QA'
-        
+        tags: '$(Build.BuildNumber)-QA'        
     - task: Docker@2
-      displayName: Docker Push
+      displayName: Docker Push QA
       inputs:
-        containerRegistry: 'docker credentials'
-        repository: 'starseed7777/arcana'
+        containerRegistry: $(DockerCredentials)
+        repository: $(ContainerRepo)
         command: 'push'
         tags: '$(Build.BuildNumber)-QA'
+- stage: buildpushnonprod
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+  jobs:
+  - job: build_push_nonprod
+    steps:
+    - task: Docker@2
+      displayName: Docker Build NONPROD
+      inputs:
+        containerRegistry: $(DockerCredentials)
+        repository: $(ContainerRepo)
+        command: 'build'
+        Dockerfile: 'Dockerfile'
+        tags: '$(Build.BuildNumber)-NONPROD'        
+    - task: Docker@2
+      displayName: Docker Push NONPROD
+      inputs:
+        containerRegistry: $(DockerCredentials)
+        repository: $(ContainerRepo)
+        command: 'push'
+        tags: '$(Build.BuildNumber)-NONPROD'
+- stage: buildpushproduction
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+  jobs:
+  - job: build_push_prod
+    steps:
+    - task: Docker@2
+      displayName: Docker Build PROD
+      inputs:
+        containerRegistry: $(DockerCredentials)
+        repository: $(ContainerRepo)
+        command: 'build'
+        Dockerfile: 'Dockerfile'
+        tags: '$(Build.BuildNumber)-PROD'        
+    - task: Docker@2
+      displayName: Docker Push PROD
+      inputs:
+        containerRegistry: $(DockerCredentials)
+        repository: $(ContainerRepo)
+        command: 'push'
+        tags: '$(Build.BuildNumber)-PROD'
