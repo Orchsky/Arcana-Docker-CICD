@@ -44,3 +44,7 @@ PaaS services on the cloud such as - (azure app service) .
 
 #### Docker Compose
 - Compose is used to run multiple containers locally [documentation here + installation](https://docs.docker.com/compose/)
+
+##### Run Docker Compose Commands
+- use ```docker-compose up``` 
+- use ```docker-compose up -d``` to run in background
