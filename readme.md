@@ -48,3 +48,29 @@ PaaS services on the cloud such as - (azure app service) .
 ##### Run Docker Compose Commands
 - use ```docker-compose up``` 
 - use ```docker-compose up -d``` to run in background
+
+##### Intro to Kubernetes
+- What is k8s: k8s is an open source container orchestration tool that runs docker containers with various different benefits and functionalities to use.
+- Local k8s vs Cloud k8s: There are different cluster (collection of containers / infrastructure that makes up k8s) setups, the first one is local in which you can run identical k8s infrastructure on your own local machine versus cloud clusters which are clusters that exist on AWS or AKS.
+
+##### Local Kubernetes Setup
+- First ensure kubectl is installed on your machine: [MAC](https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/) / [Windows](https://kubernetes.io/docs/tasks/tools/install-kubectl-windows/)
+- What is kubectl? kubectl is the utility that we use to communicate to the cluster within k8s (both local and in cloud)
+- Within docker desktop, select gear icon and check both boxes under the kubernetes tab then restart your docker desktop
+- What is k8s namespace: namespaces are individual spaces where specific containers are ran and configurations / resources are stored. This is due to the way k8s is organized.
+- (pod) --> (container) 1:1 ratio where one pod runs one container at a time. It is possible to run multiple containers in one pod but it is not reccomended because you run the risk of your applications crashing due to not enough memory in the pod to run everything at once. You can run multiple containers in the pod but is it reccomended? no.
+- Whenever running kubectl commands, if you do not specify -n <namespace> at the end of your commands you will only be able to view the default namespace resources.
+- [k8s documentation](https://kubernetes.io/docs/concepts/services-networking/service/)
+- k8s service --> responsible for exposing your container to run on a specified port. 
+- 1:1 ratio with application where for each app you should have its own service.
+- k8s deployment --> resource used to deploy the container, comes with extra functionality which provides replicaset which we can use to maintain consistent number of pods running at all times. 
+- [k8s service types](https://www.ibm.com/docs/en/cloud-private/3.2.0?topic=networking-kubernetes-service-types)
+
+##### Commands
+- ```kubectl config current-context``` this command verifies which cluster we are communicating with, if it shows as docker-desktop then this means our current context is set to communicate with the local cluster.
+- ```kubectl get ns``` this command shows us the current namespaces within the cluster that we are configured to read from within our context.
+- ```kubectl get pods -n <namespace here>``` this command shows us current running containers within a selected namespace. Pods is another word for container. 
+- ```kubectl create ns <nameofyournamespace>``` if you wish to create a new one
+- ```kubectl create -f deployment.yml``` to deploy the yaml code onto the local cluster
+
+
