@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: arcana-deployment
+  namespace: arcana #ns must be created beforehand
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: arcana-deployment #must match
+  template:
+    metadata:
+      labels:
+        app: arcana-deployment #must match
+    spec:
+      containers:
+      - name: arcana-deployment #can be anything you want
+        image: arcana
+        imagePullPolicy: Never #troubleshooted image pull policy works with never if you have the image already locally
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            memory: "250Mi"
+            cpu: "500m"
+
+--- 
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: arcana-svc
+  namespace: arcana #ns must be created beforehand
+spec:
+  type: ClusterIP
+  ports:
+  - targetPort: 80
+    port: 80
+  selector:
+    app: arcana-deployment #needs to match up to deployment label above
+
+    
