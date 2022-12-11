@@ -16,6 +16,12 @@ variables:
     value: "$(System.DefaultWorkingDirectory)/smoketest.ps1"
   - name: AgentPool
     value: "demo"
+  - name: k8s-service-connection
+    value: "arcana-k8s"
+  - name: k8s-namespace
+    value: "arcana"
+  - name: k8s-file
+    value: "deployment.yml"
 
 stages:
 - stage: validationdev
@@ -30,14 +36,17 @@ stages:
         command: 'build'
         Dockerfile: $(Dockerfile)
         tags: '$(Build.BuildNumber)-DEV'    
+    
     - task: DockerCompose@0
       displayName: Docker Compose
       inputs:
         containerregistrytype: 'Container Registry'
-        dockerRegistryEndpoint: $(DockerCredentials)
-        dockerComposeFile: $(DockerComposeFile)
+        dockerRegistryEndpoint: '$(DockerCredentials)'
+        dockerComposeFile: '$(DockerComposeFile)'
+        action: 'Run a Docker Compose command'
         dockerComposeCommand: 'up'
-        arguments: '-d'    
+        arguments: '-d'
+        currentWorkingDirectory: '$(System.DefaultWorkingDirectory)'
     - task: PowerShell@2
       displayName: Smoke Test
       inputs:
@@ -49,46 +58,6 @@ stages:
         repository: $(ContainerRepo)
         command: 'push'
         tags: '$(Build.BuildNumber)-DEV'
-- stage: buildpushqa
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-  jobs:
-  - job: build_push_qa
-    steps:
-    - task: Docker@2
-      displayName: Docker Build QA
-      inputs:
-        containerRegistry: $(DockerCredentials)
-        repository: $(ContainerRepo)
-        command: 'build'
-        Dockerfile: 'Dockerfile'
-        tags: '$(Build.BuildNumber)-QA'        
-    - task: Docker@2
-      displayName: Docker Push QA
-      inputs:
-        containerRegistry: $(DockerCredentials)
-        repository: $(ContainerRepo)
-        command: 'push'
-        tags: '$(Build.BuildNumber)-QA'
-- stage: buildpushnonprod
-  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
-  jobs:
-  - job: build_push_nonprod
-    steps:
-    - task: Docker@2
-      displayName: Docker Build NONPROD
-      inputs:
-        containerRegistry: $(DockerCredentials)
-        repository: $(ContainerRepo)
-        command: 'build'
-        Dockerfile: 'Dockerfile'
-        tags: '$(Build.BuildNumber)-NONPROD'        
-    - task: Docker@2
-      displayName: Docker Push NONPROD
-      inputs:
-        containerRegistry: $(DockerCredentials)
-        repository: $(ContainerRepo)
-        command: 'push'
-        tags: '$(Build.BuildNumber)-NONPROD'
 - stage: buildpushproduction
   condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
   jobs:
@@ -101,11 +70,26 @@ stages:
         repository: $(ContainerRepo)
         command: 'build'
         Dockerfile: 'Dockerfile'
-        tags: '$(Build.BuildNumber)-PROD'        
+        tags: 'PROD'        
     - task: Docker@2
       displayName: Docker Push PROD
       inputs:
         containerRegistry: $(DockerCredentials)
         repository: $(ContainerRepo)
         command: 'push'
-        tags: '$(Build.BuildNumber)-PROD'
+        tags: 'PROD'
+- stage: deployproduction
+  condition: eq(variables['Build.SourceBranch'], 'refs/heads/main')
+  jobs:
+  - job: deploy_production
+    steps:
+    - task: Kubernetes@1
+      inputs:
+        connectionType: 'Kubernetes Service Connection'
+        kubernetesServiceEndpoint: $(k8s-service-connection)
+        namespace: $(k8s-namespace)
+        command: 'apply'
+        useConfigurationFile: true
+        configuration: $(k8s-file)
+        secretType: 'dockerRegistry'
+        containerRegistryType: 'Azure Container Registry'

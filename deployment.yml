@@ -4,7 +4,7 @@ metadata:
   name: arcana-deployment
   namespace: arcana #ns must be created beforehand
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: arcana-deployment #must match
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: arcana-deployment #can be anything you want
-        image: arcana
+        image: starseed7777/arcana:PROD
         imagePullPolicy: Never #troubleshooted image pull policy works with never if you have the image already locally
         ports:
         - containerPort: 80
@@ -32,10 +32,10 @@ metadata:
   name: arcana-svc
   namespace: arcana #ns must be created beforehand
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
-  - targetPort: 80
-    port: 80
+  - port: 80
+    targetPort: 80
   selector:
     app: arcana-deployment #needs to match up to deployment label above
 
