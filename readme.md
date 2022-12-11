@@ -72,5 +72,7 @@ PaaS services on the cloud such as - (azure app service) .
 - ```kubectl get pods -n <namespace here>``` this command shows us current running containers within a selected namespace. Pods is another word for container. 
 - ```kubectl create ns <nameofyournamespace>``` if you wish to create a new one
 - ```kubectl create -f deployment.yml``` to deploy the yaml code onto the local cluster
-
+- ```kubectl describe pod <nameofpod> -n <namespace>``` to see further details of pod / be able to read error messages if any issues.
+- ```kubectl port-forward svc/<nameofsvc> <localhostport>:<appport would be 80 in this case>``` use this whenever trying to locally test from cloud to local to ensure app is reachable
+- When using load balancer service - reach the app via external ip, use kubectl get svc -n <name of your ns> and verify external IP from there.
 
